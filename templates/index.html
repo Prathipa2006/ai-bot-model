@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIN-AI Finance Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="chat-header">
+            🤖 FIN-AI Finance Assistant
+        </div>
+
+        <div class="chat-body" id="chatBody"></div>
+
+        <div class="chat-footer">
+            <input type="text" id="userInput" placeholder="Ask about loans, EMI, or stocks...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <div class="bot-wrapper">
+        <img src="{{ url_for('static', filename='robot.jpeg') }}" class="bot-img" alt="Fin Robot">
+        <div class="bot-chest">FIN ROBOT</div>
+    </div>
+
+    <script>
+        // 1. TYPING EFFECT: Makes the bot print word-by-word
+        function typeBotMessage(text, element, chatBody) {
+            let words = text.split(" ");
+            let i = 0;
+            let interval = setInterval(() => {
+                element.innerHTML += words[i] + " ";
+                chatBody.scrollTop = chatBody.scrollHeight; // Auto-scroll to bottom
+                i++;
+                if (i >= words.length) {
+                    clearInterval(interval);
+                }
+            }, 100); // 100ms speed
+        }
+
+        // 2. MAIN FUNCTION: Sends message to Python
+        function sendMessage() {
+            let input = document.getElementById("userInput");
+            let message = input.value.trim();
+
+            if (message === "") return;
+
+            let chatBody = document.getElementById("chatBody");
+
+            // Add the User's message to the screen immediately
+            chatBody.innerHTML += `
+                <div class="user-message"><b>You:</b> ${message}</div>
+            `;
+            
+            // Clear the input box
+            input.value = "";
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // FETCH: The "Messenger" part that talks to Flask
+            fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Create a container for the bot's response
+                let botDiv = document.createElement("div");
+                botDiv.className = "bot-message";
+                botDiv.innerHTML = "<b>Bot:</b> ";
+                chatBody.appendChild(botDiv);
+
+                // Start the typing animation
+                typeBotMessage(data.response, botDiv, chatBody);
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                chatBody.innerHTML += `<div class="bot-message" style="color:red;"><b>System:</b> Server connection failed.</div>`;
+            });
+        }
+
+        // 3. KEYBOARD SHORTCUT: Allows pressing "Enter" to send
+        document.getElementById("userInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
