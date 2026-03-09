@@ -1,8 +1,5 @@
 import re
 
-# -----------------------------
-# LOAN INTEREST DATABASE
-# -----------------------------
 loan_interest = {
     "personal loan": "Personal loan interest starts from 10.5% per annum.",
     "home loan": "Home loan interest starts from 8.4% per annum.",
@@ -12,59 +9,51 @@ loan_interest = {
 }
 
 
-# -----------------------------
-# EMI CALCULATION
-# -----------------------------
-def calculate_emi(principal, rate, months):
-    rate = rate / (12 * 100)
-    emi = (principal * rate * (1 + rate)**months) / ((1 + rate)**months - 1)
-    return round(emi, 2)
-
-
-# -----------------------------
-# EXTRACT NUMBERS (optional use)
-# -----------------------------
-def extract_numbers(text):
-    numbers = re.findall(r'\d+\.?\d*', text)
-    return [float(num) for num in numbers]
-
-
-# -----------------------------
-# MAIN FINANCE RESPONSE
-# -----------------------------
 def handle_finance_query(message):
 
     message = message.lower()
+    # ---------------- EMOTION / POLITE RESPONSES ----------------
+    if "i am very happy" in message or "i'm very happy" in message:
+     return "That's wonderful to hear! I'm glad you're feeling happy."
 
-    # ---------------- PAYMENT FAILED ----------------
+    if "thank you" in message or "thanks" in message:
+      return "You're welcome! I'm happy to help."
+
+    if "please" in message:
+      return "Sure! I'm here to help. Let me know what information you need."
+
+    # ---------------- PAYMENT FAILED / UNEXPECTED DEDUCTION ----------------
     if any(word in message for word in [
         "payment failed",
         "deducted",
         "amount deducted",
-        "transaction failed"
+        "transaction failed",
+        "unexpectedly money deducted",
+        "unexpected deduction",
+        "unauthorized transaction"
     ]):
         return (
-            "If money was deducted but payment failed, don't worry. "
-            "Usually the amount is automatically refunded within 3 to 5 working days. "
-            "If not refunded, please contact your bank customer support."
+            "If money was unexpectedly deducted from your account, immediately check your "
+            "transaction history for unauthorized activity or pending failed payments. "
+            "Contact your bank to freeze your card, initiate a chargeback for fraudulent "
+            "charges, and report it to the RBI Digital Payment Helpline (14440)."
         )
 
     # ---------------- FRAUD ----------------
     if any(word in message for word in ["fraud", "scam", "hacked", "stolen"]):
         return (
             "This looks like a fraud situation. Immediately block your card using "
-            "mobile banking or contact your bank helpline. Also change your passwords "
-            "for safety."
+            "mobile banking or contact your bank helpline. Also change your passwords."
         )
 
-    # ---------------- SHOW LOAN TYPES ----------------
-    if "loan types" in message or message.strip() == "loan":
+    # ---------------- LOAN TYPES ----------------
+    if " types of loan" in message or message.strip() == "loan":
         return (
-            "<br>We offer the following loans:</br>"
-            "<br>• Personal Loan</br>"
-            "<br>• Home Loan</br>"
-            "<br>• Vehicle Loan</br>"
-            "<br>• Education Loan</br>"
+            "Loan types available:\n"
+            "• Personal Loan\n"
+            "• Home Loan\n"
+            "• Vehicle Loan\n"
+            "• Education Loan"
         )
 
     # ---------------- SINGLE LOAN INTEREST ----------------
@@ -72,11 +61,7 @@ def handle_finance_query(message):
         if loan_name in message:
             return interest_text
 
-    # ---------------- GENERAL INTEREST ----------------
-    if "interest" in message:
-        return "Interest depends on loan type. Ask like: personal loan."
-
-    # ---------------- SAVINGS / INVESTMENT ----------------
+    # ---------------- SAVINGS ----------------
     if "save" in message or "investment" in message:
         return (
             "You can grow your money through SIP, Mutual Funds, Fixed Deposits, "
@@ -90,5 +75,4 @@ def handle_finance_query(message):
             "or by contacting your bank."
         )
 
-    # ---------------- NO FINANCE MATCH ----------------
-    return None
+    return None 
