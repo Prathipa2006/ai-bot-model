@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 
-from emotion_model import detect_emotion, get_emotion_prefix
 from finance_module import handle_finance_query
 from chatbot_logic import get_bot_response
 
@@ -24,27 +23,20 @@ def chat():
     data = request.get_json()
     user_message = data.get("message")
 
-    # 1️⃣ Detect emotion
-    emotion = detect_emotion(user_message)
-    emotion_prefix = get_emotion_prefix(emotion)
-
-    # 2️⃣ Check finance query
+    # 1️⃣ Check finance quick responses
     finance_reply = handle_finance_query(user_message)
 
-    # 3️⃣ Otherwise chatbot logic (EMI steps etc.)
+    # 2️⃣ Otherwise go to chatbot logic (emotion + EMI flow)
     if finance_reply:
         bot_reply = finance_reply
     else:
         bot_reply = get_bot_response(user_message)
 
-    # 4️⃣ Final response
-    final_reply = emotion_prefix + bot_reply
-
-    return jsonify({"response": final_reply})
+    return jsonify({"response": bot_reply})
 
 
 # -----------------------------
 # RUN SERVER
 # -----------------------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True) 
